@@ -77,6 +77,7 @@ class LanguagePack::Helpers::BundlerWrapper
 
     @bundler_path         = options[:bundler_path] || @bundler_tmp.join(dir_name)
     @bundler_tar          = options[:bundler_tar]  || "bundler/#{dir_name}.tgz"
+    topic("What is in here? - #{ENV['BUNDLE_GEMFILE']}, #{ENV['AIRBRAKE_PROJECT_ID']}")
     @orig_bundle_gemfile  = ENV['BUNDLE_GEMFILE']
     @path                 = Pathname.new("#{@bundler_path}/gems/#{dir_name}/lib")
   end
