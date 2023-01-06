@@ -25,13 +25,13 @@ class LanguagePack::Ruby < LanguagePack::Base
   # detects if this is a valid Ruby app
   # @return [Boolean] true if it's a Ruby app
   def self.use?
-    @@gemfile = ENV['BUNDLE_GEMFILE'] || 'Gemfile'
-    log("Tried to read variable #{ENV['BUNDLE_GEMFILE']}, actual content #{@@gemfile}" )
-    File.exist?(@@gemfile)
+    File.exist?("Gemfile")
   end
 
   def self.bundler
-    @@bundler ||= LanguagePack::Helpers::BundlerWrapper.new.install
+    @@bundler ||= LanguagePack::Helpers::BundlerWrapper.new({
+      gemfile_path: ENV['BUNDLE_GEMFILE']
+    }).install
   end
 
   def bundler
@@ -146,7 +146,7 @@ WARNING
       build_bundler
       # TODO post_bundler might need to be done in a new layer
       bundler.clean
-      gem_layer.metadata[:gems] = Digest::SHA2.hexdigest(File.read("#{@@gemfile}.lock"))
+      gem_layer.metadata[:gems] = Digest::SHA2.hexdigest(File.read("Gemfile.lock"))
       gem_layer.metadata[:stack] = @stack
       gem_layer.metadata[:ruby_version] = run_stdout(%q(ruby -v)).strip
       gem_layer.metadata[:rubygems_version] = run_stdout(%q(gem -v)).strip
@@ -767,7 +767,7 @@ BUNDLE
       if bundler.windows_gemfile_lock?
         log("bundle", "has_windows_gemfile_lock")
 
-        File.unlink("#{@@gemfile}.lock")
+        File.unlink("Gemfile.lock")
         ENV.delete("BUNDLE_DEPLOYMENT")
 
         warn(<<~WARNING, inline: true)
@@ -805,7 +805,7 @@ BUNDLE
 
         # we need to set BUNDLE_CONFIG and BUNDLE_GEMFILE for
         # codon since it uses bundler.
-        env_vars["BUNDLE_GEMFILE"] ||= "#{pwd}/#{@@gemfile}"
+        env_vars["BUNDLE_GEMFILE"] = "#{pwd}/Gemfile"
         env_vars["BUNDLE_CONFIG"] = "#{pwd}/.bundle/config"
         env_vars["CPATH"] = noshellescape("#{yaml_include}:$CPATH")
         env_vars["CPPATH"] = noshellescape("#{yaml_include}:$CPPATH")
