@@ -25,7 +25,9 @@ class LanguagePack::Ruby < LanguagePack::Base
   # detects if this is a valid Ruby app
   # @return [Boolean] true if it's a Ruby app
   def self.use?
-    File.exist?("Gemfile")
+    @@gemfile = ENV['BUNDLE_GEMFILE'] || 'Gemfile'
+    log("Tried to read variable #{ENV['BUNDLE_GEMFILE']}, actual content #{@@gemfile}" )
+    File.exist?(@@gemfile)
   end
 
   def self.bundler
@@ -144,7 +146,7 @@ WARNING
       build_bundler
       # TODO post_bundler might need to be done in a new layer
       bundler.clean
-      gem_layer.metadata[:gems] = Digest::SHA2.hexdigest(File.read("Gemfile.lock"))
+      gem_layer.metadata[:gems] = Digest::SHA2.hexdigest(File.read("#{@@gemfile}.lock"))
       gem_layer.metadata[:stack] = @stack
       gem_layer.metadata[:ruby_version] = run_stdout(%q(ruby -v)).strip
       gem_layer.metadata[:rubygems_version] = run_stdout(%q(gem -v)).strip
@@ -765,7 +767,7 @@ BUNDLE
       if bundler.windows_gemfile_lock?
         log("bundle", "has_windows_gemfile_lock")
 
-        File.unlink("Gemfile.lock")
+        File.unlink("#{@@gemfile}.lock")
         ENV.delete("BUNDLE_DEPLOYMENT")
 
         warn(<<~WARNING, inline: true)
@@ -784,7 +786,7 @@ BUNDLE
       bundle_command << "BUNDLE_BIN=#{ENV["BUNDLE_BIN"]} "
       bundle_command << "BUNDLE_DEPLOYMENT=#{ENV["BUNDLE_DEPLOYMENT"]} " if ENV["BUNDLE_DEPLOYMENT"] # Unset on windows since we delete the Gemfile.lock
       bundle_command << "BUNDLE_GLOBAL_PATH_APPENDS_RUBY_SCOPE=#{ENV["BUNDLE_GLOBAL_PATH_APPENDS_RUBY_SCOPE"]} " if bundler.needs_ruby_global_append_path?
-      topic("Using Ruby version: #{ENV['BUNDLE_GEMFILE']}")
+      topic("Bundle gemfile: #{ENV['BUNDLE_GEMFILE']}")
       bundle_command << "bundle install -j4"
 
       topic("Installing dependencies using bundler #{bundler.version}")
@@ -803,7 +805,7 @@ BUNDLE
 
         # we need to set BUNDLE_CONFIG and BUNDLE_GEMFILE for
         # codon since it uses bundler.
-        env_vars["BUNDLE_GEMFILE"] = "#{pwd}/Gemfile"
+        env_vars["BUNDLE_GEMFILE"] ||= "#{pwd}/#{@@gemfile}"
         env_vars["BUNDLE_CONFIG"] = "#{pwd}/.bundle/config"
         env_vars["CPATH"] = noshellescape("#{yaml_include}:$CPATH")
         env_vars["CPPATH"] = noshellescape("#{yaml_include}:$CPPATH")
