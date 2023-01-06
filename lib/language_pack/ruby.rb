@@ -29,7 +29,7 @@ class LanguagePack::Ruby < LanguagePack::Base
   end
 
   def self.bundler
-    topic("Before declaring bundler: #{ENV['BUNDLE_GEMFILE']}")
+    topic("Before declaring bundler: #{env('BUNDLE_GEMFILE')}")
     @@bundler ||= LanguagePack::Helpers::BundlerWrapper.new({
       gemfile_path: ENV['BUNDLE_GEMFILE']
     }).install
