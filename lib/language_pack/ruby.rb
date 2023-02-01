@@ -782,7 +782,6 @@ BUNDLE
       end
 
       bundle_command = String.new("")
-      bundle_command << "BUNDLE_GEMFILE='#{ENV["BUNDLE_GEMFILE"]}' "
       bundle_command << "BUNDLE_WITHOUT='#{ENV["BUNDLE_WITHOUT"]}' "
       bundle_command << "BUNDLE_PATH=#{ENV["BUNDLE_PATH"]} "
       bundle_command << "BUNDLE_BIN=#{ENV["BUNDLE_BIN"]} "
@@ -807,7 +806,7 @@ BUNDLE
 
         # we need to set BUNDLE_CONFIG and BUNDLE_GEMFILE for
         # codon since it uses bundler.
-        env_vars["BUNDLE_GEMFILE"] = "#{pwd}/Gemfile"
+        env_vars["BUNDLE_GEMFILE"] = "#{pwd}/#{ENV["BUNDLE_GEMFILE"]}}"
         env_vars["BUNDLE_CONFIG"] = "#{pwd}/.bundle/config"
         env_vars["CPATH"] = noshellescape("#{yaml_include}:$CPATH")
         env_vars["CPPATH"] = noshellescape("#{yaml_include}:$CPPATH")
